@@ -17,12 +17,14 @@ if sys.version_info[0] >= 3:
 
 
 class Xeger(object):
-    def __init__(self, limit=10):
+    def __init__(self, limit=10, unisupport = True):
+        self._chr = _chr = chr
         super(Xeger, self).__init__()
         self._limit = limit
         self._cache = dict()
-
+        latin1 = ''.join(_chr(x) for x in xrange(256))
         self._alphabets = {
+            'latin1':latin1,
             'printable': string.printable,
             'letters': string.ascii_letters,
             'uppercase': string.ascii_uppercase,
@@ -32,10 +34,10 @@ class Xeger(object):
             'nondigits': string.ascii_letters + string.punctuation,
             'nonletters': string.digits + string.punctuation,
             'whitespace': string.whitespace,
-            'nonwhitespace': string.printable.strip(),
+            'nonwhitespace': latin1.strip(),
             'normal': string.ascii_letters + string.digits + ' ',
             'word': string.ascii_letters + string.digits + '_',
-            'nonword': ''.join(set(string.printable)
+            'nonword': ''.join(set(latin1)
                             .difference(string.ascii_letters +
                                         string.digits + '_')),
             'postalsafe': string.ascii_letters + string.digits + ' .-#/',
@@ -53,13 +55,13 @@ class Xeger(object):
         }
 
         self._cases = {
-            "literal": lambda x: unichr(x),
+            "literal": lambda x: _chr(x),
             "not_literal":
-                lambda x: choice(string.printable.replace(unichr(x), '')),
+                lambda x: choice(self._alphabets['latin1'].replace(_chr(x), '')),
             "at": lambda x: '',
             "in": lambda x: self._handle_in(x),
-            "any": lambda x: choice(string.printable.replace('\n', '')),
-            "range": lambda x: [unichr(i) for i in xrange(x[0], x[1] + 1)],
+            "any": lambda x: choice(self._alphabets['latin1'].replace('\n', '')),
+            "range": lambda x: [_chr(i) for i in xrange(x[0], x[1] + 1)],
             "category": lambda x: self._categories[x](),
             'branch':
                 lambda x: ''.join(self._handle_state(i) for i in choice(x[1])),
@@ -72,15 +74,20 @@ class Xeger(object):
             'negate': lambda x: [False],
         }
 
-    def xeger(self, string_or_regex):
+    def xeger(self, string_or_regex, flags = None):
         try:
             pattern = string_or_regex.pattern
+            patflags   = string_or_regex.flags
         except AttributeError:
             pattern = string_or_regex
-
-        parsed = re.sre_parse.parse(pattern)
-        result = self._build_string(parsed)
-        self._cache.clear()
+            patflags = 0
+        if flags is not None:
+            patflags = int(flags)
+        parsed = re.sre_parse.parse(pattern, patflags)
+        try:
+            result = self._build_string(parsed)
+        finally:
+            self._cache.clear()
         return result
 
     def _build_string(self, parsed):
@@ -100,17 +107,14 @@ class Xeger(object):
         return result
 
     def _handle_in(self, value):
-        candidates = list(itertools.chain(*(self._handle_state(i) for i in value)))
+        candidates = tuple(itertools.chain(*(self._handle_state(i) for i in value)))
         if candidates[0] is False:
-            candidates = set(string.printable).difference(candidates[1:])
-            return choice(list(candidates))
+            candidates = set(self._alphabets['latin1']).difference(candidates[1:])
+            return choice(tuple(candidates))
         else:
             return choice(candidates)
 
     def _handle_repeat(self, start_range, end_range, value):
-        result = []
-        end_range = min((end_range, self._limit))
+        end_range = min((end_range, max(self._limit,start_range)))
         times = randint(start_range, end_range)
-        for i in xrange(times):
-            result.append(''.join(self._handle_state(i) for i in value))
-        return ''.join(result)
+        return ''.join(''.join(self._handle_state(i) for i in value) for _ in xrange(times))
