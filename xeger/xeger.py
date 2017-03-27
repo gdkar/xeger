@@ -5,7 +5,7 @@ https://bitbucket.org/leapfrogdevelopment/rstr/
 In turn inspired by the Java library Xeger:
 http://code.google.com/p/xeger/
 """
-import re
+import re, sre_parse, sre_constants
 import sys
 import string
 import itertools
@@ -46,32 +46,32 @@ class Xeger(object):
         }
 
         self._categories = {
-            "category_digit": lambda: self._alphabets['digits'],
-            "category_not_digit": lambda: self._alphabets['nondigits'],
-            "category_space": lambda: self._alphabets['whitespace'],
-            "category_not_space": lambda: self._alphabets['nonwhitespace'],
-            "category_word": lambda: self._alphabets['word'],
-            "category_not_word": lambda: self._alphabets['nonword'],
+            sre_constants.CATEGORY_DIGIT: lambda: self._alphabets['digits'],
+            sre_constants.CATEGORY_NOT_DIGIT: lambda: self._alphabets['nondigits'],
+            sre_constants.CATEGORY_SPACE: lambda: self._alphabets['whitespace'],
+            sre_constants.CATEGORY_NOT_SPACE: lambda: self._alphabets['nonwhitespace'],
+            sre_constants.CATEGORY_WORD: lambda: self._alphabets['word'],
+            sre_constants.CATEGORY_NOT_WORD: lambda: self._alphabets['nonword'],
         }
 
         self._cases = {
-            "literal": lambda x: _chr(x),
-            "not_literal":
+            sre_constants.LITERAL: lambda x: _chr(x),
+            sre_constants.NOT_LITERAL:
                 lambda x: choice(self._alphabets['latin1'].replace(_chr(x), '')),
-            "at": lambda x: '',
-            "in": lambda x: self._handle_in(x),
-            "any": lambda x: choice(self._alphabets['latin1'].replace('\n', '')),
-            "range": lambda x: [_chr(i) for i in xrange(x[0], x[1] + 1)],
-            "category": lambda x: self._categories[x](),
-            'branch':
+            sre_constants.AT: lambda x: '',
+            sre_constants.IN: lambda x: self._handle_in(x),
+            sre_constants.ANY: lambda x: choice(self._alphabets['latin1'].replace('\n', '')),
+            sre_constants.RANGE: lambda x: [_chr(i) for i in xrange(x[0], x[1] + 1)],
+            sre_constants.CATEGORY: lambda x: self._categories[x](),
+            sre_constants.BRANCH:
                 lambda x: ''.join(self._handle_state(i) for i in choice(x[1])),
-            "subpattern": lambda x: self._handle_group(x),
-            "assert": lambda x: ''.join(self._handle_state(i) for i in x[1]),
-            "assert_not": lambda x: '',
-            "groupref": lambda x: self._cache[x],
-            'min_repeat': lambda x: self._handle_repeat(*x),
-            'max_repeat': lambda x: self._handle_repeat(*x),
-            'negate': lambda x: [False],
+            sre_constants.SUBPATTERN: lambda x: self._handle_group(x),
+            sre_constants.ASSERT: lambda x: ''.join(self._handle_state(i) for i in x[1]),
+            sre_constants.ASSERT_NOT: lambda x: '',
+            sre_constants.GROUPREF: lambda x: self._cache[x],
+            sre_constants.MIN_REPEAT: lambda x: self._handle_repeat(*x),
+            sre_constants.MAX_REPEAT: lambda x: self._handle_repeat(*x),
+            sre_constants.NEGATE: lambda x: [False],
         }
 
     def xeger(self, string_or_regex, flags = None):
