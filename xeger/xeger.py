@@ -5,7 +5,7 @@ https://bitbucket.org/leapfrogdevelopment/rstr/
 In turn inspired by the Java library Xeger:
 http://code.google.com/p/xeger/
 """
-import re, sre_parse, sre_constants
+import re, sre_parse
 import sys
 import string
 import itertools
