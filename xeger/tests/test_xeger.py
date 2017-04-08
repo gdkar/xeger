@@ -8,7 +8,7 @@ class TestXeger(unittest.TestCase):
 
     def match(self, pattern):
         for _ in range(100):
-            assert re.match(pattern, xeger.xeger(pattern))
+            assert re.match(pattern, xeger.x(pattern))
 
     def test_single_dot(self):
         """
@@ -107,7 +107,7 @@ class TestXeger(unittest.TestCase):
 
     def test_lookbehind(self):
         pattern = r'(?<=foo)bar'
-        assert re.search(pattern, xeger.xeger(pattern))
+        assert re.search(pattern, xeger.x(pattern))
 
     def test_backreference(self):
         self.match(r'(foo|bar)baz\1')
