@@ -4,11 +4,12 @@ import xeger
 
 class TestXeger(unittest.TestCase):
     def setUp(self):
-        pass
+        self.xeger = xeger.Xeger()
 
     def match(self, pattern):
         for _ in range(100):
-            assert re.match(pattern, xeger.x(pattern))
+            c = re.compile(pattern)
+            assert c.match(self.xeger.xeger(pattern,c.flags))
 
     def test_single_dot(self):
         """

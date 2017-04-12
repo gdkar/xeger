@@ -21,6 +21,7 @@ def _const_lambda_arg(arg):
     return lambda x:arg
 class Xeger(object):
     _latin1 = ''.join(chr(x) for x in xrange(256))
+    _word = string.ascii_letters+string.digits+'_'
     _alphabets = {
         'latin1':_latin1,
         'printable': string.printable,
@@ -34,10 +35,10 @@ class Xeger(object):
         'whitespace': string.whitespace,
         'nonwhitespace': _latin1.strip(),
         'normal': string.ascii_letters + string.digits + ' ',
-        'word': string.ascii_letters + string.digits + '_',
-        'nonword': ''.join(set(_latin1)
-                        .difference(string.ascii_letters +
-                                    string.digits + '_')),
+        'word': _word,
+        #string.ascii_letters + string.digits + '_',
+        'nonword': ''.join(frozenset(_latin1)
+                        -frozenset(_word)),
         'postalsafe': string.ascii_letters + string.digits + ' .-#/',
         'urlsafe': string.ascii_letters + string.digits + '-._~',
         'domainsafe': string.ascii_letters + string.digits + '-'
@@ -50,7 +51,7 @@ class Xeger(object):
         sre_parse.CATEGORY_WORD: _const_lambda( _alphabets['word']),
         sre_parse.CATEGORY_NOT_WORD: _const_lambda( _alphabets['nonword']),
     }
-    def __init__(self, limit=10, unisupport = True, string_or_regex=None, flags=None):
+    def __init__(self, limit=10, unisupport = False, string_or_regex=None, flags=None):
         self._chr = _chr = chr
         super(Xeger, self).__init__()
         self._limit = limit
