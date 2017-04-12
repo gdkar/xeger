@@ -9,7 +9,8 @@ import re, sre_parse
 import sys
 import string
 import itertools
-from random import choice, randint
+import random
+#choice, randint
 
 if sys.version_info[0] >= 3:
     unichr = chr
@@ -51,7 +52,16 @@ class Xeger(object):
         sre_parse.CATEGORY_WORD: _const_lambda( _alphabets['word']),
         sre_parse.CATEGORY_NOT_WORD: _const_lambda( _alphabets['nonword']),
     }
-    def __init__(self, limit=10, unisupport = False, string_or_regex=None, flags=None):
+    def __init__(self, limit=10, unisupport = False, string_or_regex=None, flags=None, seed=None):
+        if seed is not None:
+            self._random = random.Random(seed)
+            self._choice = self._random.choice
+            self._randint= self._random.randint
+        else:
+            self._random = random
+            self._choice = random.choice
+            self._randint= random.randint
+
         self._chr = _chr = chr
         super(Xeger, self).__init__()
         self._limit = limit
@@ -67,6 +77,7 @@ class Xeger(object):
         _empty= ''
         _join = _empty.join
         _replace = latin1.replace
+        choice = self._choice
         self._cases = {
             sre_parse.LITERAL: _chr,
             sre_parse.NOT_LITERAL:
@@ -146,11 +157,11 @@ class Xeger(object):
         candidates = tuple(itertools.chain(*(self._handle_state(i) for i in value)))
         if candidates[0] is False:
             candidates = set(self._alphabets['latin1']).difference(candidates[1:])
-            return choice(tuple(candidates))
+            return self._choice(tuple(candidates))
         else:
-            return choice(candidates)
+            return self._choice(candidates)
 
     def _handle_repeat(self, start_range, end_range, value):
         end_range = min((end_range, max(self._limit,start_range)))
-        times = randint(start_range, end_range)
+        times = self._randint(start_range, end_range)
         return ''.join(''.join(self._handle_state(i) for i in value) for _ in xrange(times))
